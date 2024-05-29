@@ -1,0 +1,191 @@
+player = {
+    'name': '',
+    'armor': 0.95,
+    'hp': 100,
+    'attack': 5,
+    'luck': 10,
+    'money': 10000,
+    'inventory': []
+}
+
+enemies = [
+    {
+        'name': 'Волк', 
+        'hp': 10,
+        'attack': 10,
+        'script': 'Зачем ты здесь? Ты не сможешь меня победить. Принцесса больше не твоя, а чья - не твоя забота. Уходи, пока можешь.',
+        'win': 'Ты - достойный противник, но до принцессы тебе всё равно никогда не добраться.',
+        'loss': 'Ха! Я же говорил - тебе меня не одолеть. Уходи и не возвращайся.'
+    },
+    {
+        'name': 'Змей Горыныч',
+        'hp': 20,
+        'attack': 25,
+        'script': 'Не ожидал меня встретить? Я, если честно, тоже не думал, что здесь окажусь. После богатырей остаётся только фрилансить, в этот раз сказали защищать долину на пути к замку. В любом случае, ААААААрхрхрархгрх!! Ты не пройдёшь!',
+        'win': 'На самом деле, я даже рад, что ты меня победил. Мой босс - дуралей, принцессу не заслужил. Иди дальше. Не зубадь там замолвить за меня словечко. Скажи, что я сражался как лев. Нет.. Как дракон!!',
+        'loss': 'Могли бы просто побеседовать. Ты же и сам знал, что у тебя не получится меня убить.. Возвращайся как-нибудь, здесь довольно одиноко.'
+    },
+
+    {
+        'name': 'Доминик Торетто',
+        'hp': 200,
+        'attack': 50,
+        'script': 'Как ты смог добраться до сюда?! Как ты вообще посмел думать, что можешь со мной сражаться? Ты слаб! Принцесса будет моей, а ты уйдёшь ни с чем. Да будет битва! Самое важное - семья.',
+        'win': 'Ты меня убил, но я точно появлюсь в следующей части',
+        'loss': 'Прощай..'
+    }
+]
+
+
+items = {
+    '1': {
+        'name': 'зелье удачи',
+        'prise': 1200    
+    },
+    '2':{
+        'name': 'пропестить теренировку',
+        'prise': 900
+    }
+}
+
+from random import randint
+from time import sleep
+from main import *
+
+def fight(current_enemy):
+        round = randint(1, 2)
+        enemy = enemies[current_enemy]
+        enemy_hp = enemies[current_enemy]['hp']
+        print(f'Противник - {enemy["name"]}: {enemy["script"]}')
+        input('Enter чтобы продолжить')
+        print()
+        while player['hp'] > 0 and enemy_hp > 0:
+            if round % 2 == 1:
+                print(f'{player["name"]} атакует {enemy["name"]}.')
+                crit = randint(1,100)
+                if crit < player['luck']:
+                    enemy_hp -= player['attack'] * 3
+                else:
+                    enemy_hp -= player['attack']
+                sleep(1)
+            else:
+                print(f'{enemy["name"]} атакует {player["name"]}.')
+                player['hp'] -= enemy['attack'] * player['armor']
+                sleep(1)
+                print(f'''{player['name']} - {player['hp']}
+        {enemy['name']} - {enemy_hp}''')
+                print()
+                sleep(1)
+            round += 1
+
+        if player['hp'] > 0:
+            print(f'Противник - {enemy["name"]}: {enemy["win"]}')
+            current_enemy += 1
+        else:
+            print(f'Противник - {enemy["name"]}: {enemy["loss"]}')
+        player['hp'] = 100
+        return current_enemy
+
+
+def tran(tran_type):
+    skip = '2'
+    if items['2']['name'] in player['inventory']:
+        skip = input('''желаете пропустить тренировку
+1 - да                     
+2 - нет
+''')
+    if skip == '2':
+        for i in range(0,101,20):
+            print(f'тренировка завершенна на {i}%')
+        sleep(1)
+    if tran == '1':
+        player['attack'] += 2
+        print(f'тренировка оконченна у вас уронна: {player["attack"]}')
+    elif tran == '2':
+        player['armor'] -= .09
+        print(f'тренировка оконченна броня принимает на себя {100 - player["armor"] * 100}%')
+        print()   
+
+def display_player():
+    print(f'Игрок - {player["name"]}')
+    print(f'Величина атаки - {player["attack"]}. Шанс критического урона ({player["attack"]}ед.) равен {player["luck"]}')
+    print(f'Броня поглощает {(1 - player["armor"]) * 100}% урона')
+
+
+def display_enemy(current_enemy):
+    enemy = enemies[current_enemy]
+    print(f'Противник - {enemy["name"]}')
+    print(f'Веилична атаки - {enemy["attack"]}')
+    print(f'Здоровье - {enemy["hp"]}')
+
+def display_inventory():
+    print(f'в инвенторе:')
+    for value in player['inventory']:
+        print(value)
+    print(f'{player["money"]} монет')
+    print()
+    if 'зелье удачи' in player['inventory']:
+        potion = input('''желаешь выпить зелье удачи
+    1 - да
+    2 - нет
+    ''')
+        if potion == '1':
+            player['luck'] += 7
+            print(f'выполнено, теперь у тебя шанс нанести критический урон равен {player["luck"]}%')
+            player['inventory'].remove('зелье удачи')
+
+def shop():
+    print('добро пожаловать в магазин что ты хочешь купить')
+    print(f'у меня {player["money"]} монет')
+    for key, value in items.items():
+        print(f'{key} - {value["name"]}: {value["prise"]}')
+
+    item = input()
+    if item in player['inventory']:
+        print(f'у тебя есть {items[item]["name"]}')
+    elif player['money'] >= items[item]['prise']:
+        print(f'ты успешно приебрёл {items[item]["name"]}')
+        player['inventory'].append(items[item]["name"])
+        player['money'] -= items[item]['prise']
+    else:
+        print('нехватает монет:(')
+    print()
+    print('я тебе рад свегда путник') 
+    print()       
+
+from random import randint
+from time import sleep
+from helpers import *
+from main import *
+name = input('введи имя')
+player['name'] = name
+current_enemy = 0
+
+while True:
+    action = input('''выбери действие:
+1 - в бой:
+2 - тренировка                                      
+3 - магазин                  
+4 - показать инвентарь
+5 - информация о игроке                   
+6 - информация о текущем противнике
+''')
+    if action == '1':
+        current_enemy = fight(current_enemy)
+        if current_enemy == 3:
+            break
+    elif action == '2':
+        tran_type = input('''
+        1 - тренировать атаку
+        2 - тренировать обороону'''                           
+        )    
+        tran(tran_type)
+    elif action == '3':
+        shop()
+    elif action == '4':
+        display_inventory()
+    elif action == '5':
+        display_player()
+    elif action == '6':
+        display_enemy(current_enemy)   
+
